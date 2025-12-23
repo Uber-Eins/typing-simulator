@@ -6,7 +6,7 @@ You can also use this extension to impress your boss or your friends 😄. Activ
 
 Did you like the extension? Please give me a star ⭐ on this project on github and contribute to the project.
 
-👉 [Project Repository](https://github.com/marcosgomesneto/typing-simulator)
+👉 [Project Repository](https://github.com/Uber-Eins/typing-simulator)
 
 ## Usage
 
@@ -21,7 +21,7 @@ Did you like the extension? Please give me a star ⭐ on this project on github 
 
 Press `CTRL` + `SHIFT` + `P`, search for the `User Settings` and Search `Typing Simulator`.
 
-![screenshot](https://raw.githubusercontent.com/marcosgomesneto/typing-simulator/main/resources/configuration.png)
+![screenshot](https://raw.githubusercontent.com/Uber-Eins/typing-simulator/main/resources/configuration.png)
 
 ## Key Features
 
@@ -65,9 +65,9 @@ This extension aims to combine the strengths of plugins with similar goals, such
 
 ## Support and Contribution
 
-If you encounter any issues or have suggestions for improvements, feel free to open an [issue](https://github.com/marcosgomesneto/typing-simulator/issues) on the GitHub repository.
+If you encounter any issues or have suggestions for improvements, feel free to open an [issue](https://github.com/Uber-Eins/typing-simulator/issues) on the GitHub repository.
 
-If you want to contribute, please open a [pull request](https://github.com/marcosgomesneto/typing-simulator/pulls) in the repository.
+If you want to contribute, please open a [pull request](https://github.com/Uber-Eins/typing-simulator/pulls) in the repository.
 
 **Happy Coding!**
 

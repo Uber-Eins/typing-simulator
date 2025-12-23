@@ -1,4 +1,4 @@
-import Controller from "../Controller";
+import Controller from "../controller";
 import { getActiveEditor } from "../utils/editor";
 
 const continueTyping = () => {

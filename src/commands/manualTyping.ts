@@ -1,4 +1,4 @@
-import Controller from "../Controller";
+import Controller from "../controller";
 
 const manualTyping = ({ text }: { text: string }) => {
   const controller = Controller.getInstance();

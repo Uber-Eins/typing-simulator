@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Mode, Speed, State } from "./State";
+import { Mode, Speed, State } from "./state";
 import { typing } from "./typing";
 import Queue from "promise-queue";
 
@@ -9,10 +9,14 @@ class Controller {
   private typingConcurrency = 1;
   private typingQueueMaxSize = Number.MAX_SAFE_INTEGER;
   private typingQueue: Queue;
+  private lastDocumentText = "";
 
   private constructor() {
     this.state = new State();
     this.typingQueue = new Queue(this.typingConcurrency, this.typingQueueMaxSize);
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      this.handleDocumentChange(event);
+    });
   }
 
   public static getInstance(): Controller {
@@ -38,11 +42,11 @@ class Controller {
     const docEol = document.eol ?? vscode.EndOfLine.LF;
     this.state.eol = docEol == vscode.EndOfLine.LF ? "lf" : "crlf";
     this.state.setStatus("typing");
+    this.state.setPosition(position ?? new vscode.Position(0, 0));
+    this.state.clearPendingType();
+    this.lastDocumentText = document.getText();
     if (this.state.mode == "auto") {
       typing({ text: text, state: this.state, pos: position ?? new vscode.Position(0, 0) });
-    }
-    if (this.state.mode == "manual") {
-      this.state.setPosition(position ?? new vscode.Position(0, 0));
     }
   }
 
@@ -89,6 +93,104 @@ class Controller {
     this.state.setMode(config.get<Mode>("mode") ?? "auto");
     this.state.setSpeed(config.get<Speed>("speed") ?? "medium");
   }
+
+  private handleDocumentChange(event: vscode.TextDocumentChangeEvent) {
+    if (!this.state.currentDocument || event.document.uri != this.state.currentDocument) return;
+
+    const previousText = this.lastDocumentText;
+    this.lastDocumentText = event.document.getText();
+
+    this.updatePositionFromEditor(event.document);
+
+    if (this.state.status != "typing") return;
+
+    if (this.state.pendingTypeText) {
+      let remainingText = this.state.typingText;
+      for (const change of event.contentChanges) {
+        if (change.rangeLength == 0) continue;
+        const deletedText = previousText.slice(
+          change.rangeOffset,
+          change.rangeOffset + change.rangeLength,
+        );
+        if (deletedText.length > 0) {
+          remainingText = deletedText + remainingText;
+        }
+      }
+      if (remainingText != this.state.typingText) {
+        this.state.setTypingText(remainingText);
+      }
+      if (
+        this.state.pendingTypeVersion == null ||
+        event.document.version > this.state.pendingTypeVersion
+      ) {
+        this.state.clearPendingType();
+      }
+      return;
+    }
+
+    let remainingText = this.state.typingText;
+
+    for (const change of event.contentChanges) {
+      const deletedText = previousText.slice(
+        change.rangeOffset,
+        change.rangeOffset + change.rangeLength,
+      );
+      if (deletedText.length > 0) {
+        remainingText = deletedText + remainingText;
+      }
+      if (change.text.length > 0) {
+        remainingText = consumeMatchingPrefix(remainingText, change.text);
+      }
+    }
+
+    this.state.setTypingText(remainingText);
+  }
+
+  private updatePositionFromEditor(document: vscode.TextDocument) {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || editor.document.uri != document.uri) return;
+    this.state.setPosition(editor.selection.active);
+  }
+}
+
+function consumeMatchingPrefix(remaining: string, inserted: string): string {
+  let remainingIndex = 0;
+  let insertedIndex = 0;
+
+  while (remainingIndex < remaining.length && insertedIndex < inserted.length) {
+    const remainingChar = remaining[remainingIndex];
+    const insertedChar = inserted[insertedIndex];
+
+    if (remainingChar === insertedChar) {
+      remainingIndex += 1;
+      insertedIndex += 1;
+      continue;
+    }
+
+    if (
+      remainingChar === "\r" &&
+      remaining[remainingIndex + 1] === "\n" &&
+      insertedChar === "\n"
+    ) {
+      remainingIndex += 2;
+      insertedIndex += 1;
+      continue;
+    }
+
+    if (
+      remainingChar === "\n" &&
+      insertedChar === "\r" &&
+      inserted[insertedIndex + 1] === "\n"
+    ) {
+      remainingIndex += 1;
+      insertedIndex += 2;
+      continue;
+    }
+
+    break;
+  }
+
+  return remaining.slice(remainingIndex);
 }
 
 export default Controller;

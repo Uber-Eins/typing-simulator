@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import Controller from "../Controller";
+import Controller from "../controller";
 import { getActiveEditor } from "../utils/editor";
 
 const startCurrentFileTyping = () => {

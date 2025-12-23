@@ -12,6 +12,8 @@ export class State {
   private _speed: Speed = "medium";
   private _eol: EOL;
   private _currentDocument: vscode.Uri | null;
+  private _pendingTypeText: string | null;
+  private _pendingTypeVersion: number | null;
 
   constructor() {
     this._eol = "crlf";
@@ -19,6 +21,8 @@ export class State {
     this._typingText = "";
     this._position = new vscode.Position(0, 0);
     this._currentDocument = null;
+    this._pendingTypeText = null;
+    this._pendingTypeVersion = null;
   }
 
   get status() {
@@ -75,5 +79,23 @@ export class State {
 
   setSpeed(value: Speed) {
     this._speed = value;
+  }
+
+  get pendingTypeText() {
+    return this._pendingTypeText;
+  }
+
+  get pendingTypeVersion() {
+    return this._pendingTypeVersion;
+  }
+
+  setPendingType(text: string, version: number) {
+    this._pendingTypeText = text;
+    this._pendingTypeVersion = version;
+  }
+
+  clearPendingType() {
+    this._pendingTypeText = null;
+    this._pendingTypeVersion = null;
   }
 }

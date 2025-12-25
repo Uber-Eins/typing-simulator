@@ -70,6 +70,10 @@ class Controller {
 
   public bindKeys(text: string) {
     if (this.state.status == "typing" && this.state.mode == "manual") {
+      if (!isManualTriggerKey(text)) {
+        vscode.commands.executeCommand("default:type", { text });
+        return;
+      }
       this.typingQueue.add(() => {
         return typing({
           text: this.state.typingText,
@@ -151,6 +155,10 @@ class Controller {
     if (!editor || editor.document.uri != document.uri) return;
     this.state.setPosition(editor.selection.active);
   }
+}
+
+function isManualTriggerKey(text: string): boolean {
+  return /^[A-Za-z0-9]$/.test(text);
 }
 
 function consumeMatchingPrefix(remaining: string, inserted: string): string {
